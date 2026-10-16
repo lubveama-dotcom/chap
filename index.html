@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHAPP — Creative Developer & Systems Architect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090909;
+      --fg: #e4e4e0;
+      --muted: #686866;
+      --border: #1e1e1e;
+      --accent: #d92323;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      cursor: none;
+    }
+
+    html, body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    /* Film Grain Overlay */
+    .noise {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.045;
+    }
+
+    /* Custom Cursor */
+    .cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 14px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                  background-color 0.25s ease;
+      box-shadow: 0 0 16px rgba(217, 35, 35, 0.45);
+    }
+
+    .cursor.is-hover {
+      width: 56px;
+      height: 56px;
+      background: #ffffff;
+      mix-blend-mode: difference;
+      box-shadow: none;
+    }
+
+    /* Swiss Grid Layout */
+    .grid-shell {
+      max-width: 1640px;
+      margin: 0 auto;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Status Bar */
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .topbar-cell {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .topbar-cell:last-child {
+      border-right: none;
+      justify-content: flex-end;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      margin-right: 10px;
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
+    }
+
+    .topbar a {
+      color: var(--fg);
+      text-decoration: none;
+      padding: 4px 8px;
+      border: 1px solid transparent;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .topbar a:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Hero Section */
+    .hero {
+      display: grid;
+      grid-template-columns: 7fr 5fr;
+      border-bottom: 1px solid var(--border);
+      min-height: 76vh;
+    }
+
+    .hero-main {
+      padding: 48px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid var(--border);
+      position: relative;
+    }
+
+    .hero-meta {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 440px;
+    }
+
+    .hero-meta span {
+      color: var(--fg);
+    }
+
+    .hero-title-wrap {
+      margin-top: auto;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(4.5rem, 13.5vw, 14.5rem);
+      line-height: 0.82;
+      letter-spacing: -0.055em;
+      text-transform: uppercase;
+      margin-left: -0.04em;
+    }
+
+    .hero-title .dot {
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      margin-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Visual Portrait Column */
+    .hero-visual {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d0d;
+      padding: 36px;
+    }
+
+    .portrait-frame {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      aspect-ratio: 1 / 1;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: #141414;
+    }
+
+    .portrait-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.18);
+      transform: scale(1.03);
+      transition: filter 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .portrait-frame:hover .portrait-img {
+      filter: grayscale(0%) contrast(1.04);
+      transform: scale(1);
+    }
+
+    .frame-tag {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(9, 9, 9, 0.85);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg);
+      backdrop-filter: blur(4px);
+    }
+
+    .frame-tag b {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Section Header */
+    .section-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Interactive Works List */
+    .works-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .work-row {
+      display: grid;
+      grid-template-columns: 80px 3fr 2fr 140px;
+      align-items: center;
+      padding: 34px 24px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--fg);
+      position: relative;
+      transition: background-color 0.25s ease, padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .work-row:hover {
+      background-color: #111111;
+      padding-left: 36px;
+    }
+
+    .work-idx {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .work-row:hover .work-idx {
+      color: var(--accent);
+    }
+
+    .work-name {
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2.5vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+    }
+
+    .work-stack {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .work-year {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: right;
+      color: var(--fg);
+    }
+
+    /* Specs / Architecture Matrix */
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .matrix-cell {
+      padding: 36px 24px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 210px;
+    }
+
+    .matrix-cell:last-child {
+      border-right: none;
+    }
+
+    .matrix-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    .matrix-title {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: var(--fg);
+      margin-top: 24px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .matrix-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Magnetic CTA Footer */
+    .footer-cta {
+      padding: 96px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .footer-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+
+    .magnetic-btn {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--fg);
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 6.5vw, 6rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      text-transform: uppercase;
+      padding: 28px 48px;
+      border: 1px solid var(--border);
+      background: #0d0d0d;
+      transition: border-color 0.25s ease, color 0.25s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .magnetic-btn span {
+      color: var(--accent);
+    }
+
+    .magnetic-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .subfooter {
+      border-top: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 960px) {
+      * { cursor: auto; }
+      .cursor { display: none; }
+      .topbar { grid-template-columns: 1fr 1fr; }
+      .topbar-cell:nth-child(2) { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-main { border-right: none; border-bottom: 1px solid var(--border); }
+      .work-row { grid-template-columns: 45px 1fr; gap: 10px; }
+      .work-stack, .work-year { grid-column: 2; text-align: left; }
+      .matrix { grid-template-columns: 1fr; }
+      .matrix-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Film Grain SVG -->
+  <svg class="noise" xmlns="http://www.w3.org/2000/svg">
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain)"/>
+  </svg>
+
+  <!-- Custom Cursor -->
+  <div class="cursor" id="cursor"></div>
+
+  <div class="grid-shell">
+    <!-- Top Status Bar -->
+    <header class="topbar">
+      <div class="topbar-cell">
+        <span class="status-dot"></span>
+        <span>CHAPP // SYS.DEV</span>
+      </div>
+      <div class="topbar-cell">
+        <span id="clock">UTC+3 00:00:00.00</span>
+      </div>
+      <div class="topbar-cell">
+        <a href="https://t.me/chapp99" target="_blank" rel="noopener" data-scramble="@CHAPP99" class="hover-target">
+          [ TG: @CHAPP99 ↗ ]
+        </a>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-main">
+        <div class="hero-meta">
+          <p>// INDEPENDENT SOFTWARE ENGINEER</p>
+          <p>Building high-load Telegram architectures, autonomous bots, and minimalist web interfaces with zero bloat.</p>
+          <p style="margin-top: 12px;">STATUS: <span>AVAILABLE FOR SELECT PROJECTS</span></p>
+        </div>
+
+        <div class="hero-title-wrap">
+          <h1 class="hero-title">CHAPP<span class="dot">.</span></h1>
+          <div class="hero-sub">
+            <span>BASED IN RU // WORLDWIDE</span>
+            <span>[ SCROLL TO INSPECT ↓ ]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="portrait-frame hover-target">
+          <!-- Положи свою фотку рядом с index.html и назови её avatar.jpg -->
+          <img src="avatar.jpg" alt="CHAPP" class="portrait-img" onerror="this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'">
+          <div class="frame-tag">ID: <b>@chapp99</b> // HOVER TO DECRYPT</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Selected Works -->
+    <div class="section-bar">
+      <span>// 01 — SELECTED DEPLOYMENTS</span>
+      <span>INDEX [03]</span>
+    </div>
+
+    <section class="works-list">
+      <a href="https://t.me/chapp99" target="_blank" rel="noopener" class="work-row hover-target">
+        <span class="work-idx">01/</span>
+        <span class="work-name">Autonomous TG Bot Engine</span>
+        <span class="work-stack">Python / Aiogram 3 / Redis / Webhook</span>
+        <span class="work-year">2026 ↗</span>
+      </a>
+
+      <a href="https://t.me/chapp99" target="_blank" rel="noopener" class="work-row hover-target">
+        <span class="work-idx">02/</span>
+        <span class="work-name">Pure Minimalist Browser</span>
+        <span class="work-stack">Android / Kotlin / WebView Core</span>
+        <span class="work-year">2026 ↗</span>
+      </a>
+
+      <a href="https://t.me/chapp99" target="_blank" rel="noopener" class="work-row hover-target">
+        <span class="work-idx">03/</span>
+        <span class="work-name">SpeedLocal Telemetry</span>
+        <span class="work-stack">GPS API / Open-Source / CI/CD</span>
+        <span class="work-year">2026 ↗</span>
+      </a>
+    </section>
+
+    <!-- Technical Specs -->
+    <div class="section-bar">
+      <span>// 02 — ARCHITECTURE PRINCIPLES</span>
+      <span>CORE STACK</span>
+    </div>
+
+    <section class="matrix">
+      <div class="matrix-cell">
+        <span class="matrix-num">[001]</span>
+        <div>
+          <h3 class="matrix-title">Zero-Latency Bots</h3>
+          <p class="matrix-desc">Асинхронные Telegram-боты и Mini Apps для бизнеса: автоматизация заявок, платёжные шлюзы и парсинг в реальном времени.</p>
+        </div>
+      </div>
+      <div class="matrix-cell">
+        <span class="matrix-num">[002]</span>
+        <div>
+          <h3 class="matrix-title">Raw Web Interfaces</h3>
+          <p class="matrix-desc">Кастомная вёрстка без шаблонных конструкторов. Чистая типографика, мгновенная загрузка и точные микро-анимации.</p>
+        </div>
+      </div>
+      <div class="matrix-cell">
+        <span class="matrix-num">[003]</span>
+        <div>
+          <h3 class="matrix-title">Direct Execution</h3>
+          <p class="matrix-desc">Работа напрямую без менеджеров и посредников. Быстрый прототип, чистый репозиторий и деплой под ключ.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="footer-cta">
+      <div class="footer-label">// INITIATE CONNECTION</div>
+      <a href="https://t.me/chapp99" target="_blank" rel="noopener" class="magnetic-btn hover-target" id="magneticBtn">
+        PING <span>@CHAPP99</span>
+      </a>
+    </section>
+
+    <footer class="subfooter">
+      <span>© 2026 CHAPP. ALL RIGHTS RESERVED.</span>
+      <span>BUILD: v2.4.0-PROD</span>
+    </footer>
+  </div>
+
+  <script>
+    // 1. Smooth Inertial Cursor (Linear Interpolation)
+    const cursor = document.getElementById('cursor');
+    let mouseX = window.innerWidth / 2;
+    let mouseY = window.innerHeight / 2;
+    let cursorX = mouseX;
+    let cursorY = mouseY;
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function renderCursor() {
+      cursorX += (mouseX - cursorX) * 0.18;
+      cursorY += (mouseY - cursorY) * 0.18;
+      cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+      requestAnimationFrame(renderCursor);
+    }
+    requestAnimationFrame(renderCursor);
+
+    document.querySelectorAll('.hover-target').forEach((el) => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('is-hover'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('is-hover'));
+    });
+
+    // 2. High-Precision Live Clock
+    const clockEl = document.getElementById('clock');
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toTimeString().split(' ')[0];
+      const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+      clockEl.textContent = `SYS.TIME // ${timeStr}.${ms}`;
+      requestAnimationFrame(updateClock);
+    }
+    requestAnimationFrame(updateClock);
+
+    // 3. Cipher Text Scramble on Hover
+    const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
+    document.querySelectorAll('[data-scramble]').forEach((el) => {
+      const original = `[ TG: ${el.dataset.scramble} ↗ ]`;
+      let interval = null;
+
+      el.addEventListener('mouseenter', () => {
+        let iteration = 0;
+        clearInterval(interval);
+        interval = setInterval(() => {
+          el.textContent = original
+            .split('')
+            .map((char, idx) => {
+              if (idx < iteration || char === ' ' || char === '[' || char === ']') return original[idx];
+              return glyphs[Math.floor(Math.random() * glyphs.length)];
+            })
+            .join('');
+
+          if (iteration >= original.length) clearInterval(interval);
+          iteration += 0.6;
+        }, 25);
+      });
+    });
+
+    // 4. Magnetic Footer Button
+    const magBtn = document.getElementById('magneticBtn');
+    magBtn.addEventListener('mousemove', (e) => {
+      const rect = magBtn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      magBtn.style.transform = `translate(${x * 0.22}px, ${y * 0.22}px)`;
+    });
+
+    magBtn.addEventListener('mouseleave', () => {
+      magBtn.style.transform = 'translate(0px, 0px)';
+    });
+  </script>
+</body>
+</html>
